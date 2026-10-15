@@ -1,0 +1,20 @@
+{
+  "name": "clean-my-mac-local",
+  "interface": {
+    "displayName": "Clean My Mac Local"
+  },
+  "plugins": [
+    {
+      "name": "clean-my-mac-app",
+      "source": {
+        "source": "local",
+        "path": "./plugins/clean-my-mac-app"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #070707;
+        --surface: #101010;
+        --surface-2: #171717;
+        --surface-3: #202020;
+        --line: #2d2d2d;
+        --text: #f3f3f3;
+        --muted: #a8a8a8;
+        --quiet: #767676;
+        --ok: #7fdc99;
+        --warn: #f1c96d;
+        --risk: #ff8f8f;
+        --info: #8dbdff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        min-height: 680px;
+        padding: 22px;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-columns: 220px minmax(0, 1fr) 300px;
+        gap: 16px;
+        min-height: 636px;
+      }
+
+      .rail,
+      .workspace,
+      .inspector {
+        min-width: 0;
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .rail,
+      .inspector {
+        padding: 16px;
+      }
+
+      .brand {
+        display: grid;
+        gap: 4px;
+        margin-bottom: 18px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: 19px;
+        font-weight: 720;
+      }
+
+      h2 {
+        font-size: 18px;
+        font-weight: 680;
+      }
+
+      h3 {
+        font-size: 13px;
+        font-weight: 680;
+        color: var(--muted);
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .nav {
+        display: grid;
+        gap: 8px;
+      }
+
+      button {
+        min-height: 40px;
+        border: 0;
+        border-radius: 7px;
+        background: var(--surface-2);
+        color: var(--text);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: var(--surface-3);
+      }
+
+      button:disabled {
+        cursor: default;
+        opacity: 0.5;
+      }
+
+      .nav button {
+        display: grid;
+        grid-template-columns: 22px 1fr;
+        align-items: center;
+        gap: 8px;
+        text-align: left;
+        padding: 0 12px;
+      }
+
+      .nav button.active {
+        background: #eaeaea;
+        color: #101010;
+      }
+
+      .icon {
+        color: currentColor;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        overflow: hidden;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 28px;
+        padding: 0 10px;
+        border-radius: 999px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1px;
+        background: var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .metric {
+        min-height: 74px;
+        padding: 14px;
+        background: var(--surface);
+      }
+
+      .metric span {
+        display: block;
+        color: var(--quiet);
+        font-size: 12px;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 18px;
+        font-weight: 720;
+        overflow-wrap: anywhere;
+      }
+
+      .body {
+        min-height: 0;
+        overflow: auto;
+        padding: 18px;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .actions button {
+        padding: 0 13px;
+      }
+
+      .actions .primary {
+        background: #eaeaea;
+        color: #101010;
+      }
+
+      .actions .danger {
+        color: var(--risk);
+      }
+
+      .include-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 40px;
+        gap: 10px;
+        padding: 0 10px;
+        border-radius: 7px;
+        background: var(--surface-2);
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      input {
+        width: 17px;
+        height: 17px;
+        accent-color: var(--ok);
+      }
+
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+      }
+
+      .table {
+        overflow: hidden;
+        border-radius: 8px;
+        background: var(--surface-2);
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: minmax(180px, 1.3fr) 118px 124px minmax(220px, 1fr);
+        gap: 12px;
+        align-items: center;
+        min-height: 50px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .row:last-child {
+        border-bottom: 0;
+      }
+
+      .deep-table .row {
+        grid-template-columns: minmax(120px, 1.2fr) 92px 110px minmax(0, 1fr);
+      }
+
+      .codex-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .codex-title input { flex: 0 0 auto; }
+
+      .codex-table .row .note { overflow-wrap: anywhere; }
+
+      .row.head {
+        min-height: 34px;
+        color: var(--quiet);
+        font-size: 11px;
+        text-transform: uppercase;
+      }
+
+      .title {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .title strong {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+      }
+
+      .path {
+        overflow-wrap: anywhere;
+        color: var(--quiet);
+        font:
+          11px/1.4 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      .size {
+        font-weight: 700;
+      }
+
+      .pill {
+        width: fit-content;
+        max-width: 100%;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: #272727;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 660;
+      }
+
+      .pill.ok {
+        color: var(--ok);
+      }
+
+      .pill.warn {
+        color: var(--warn);
+      }
+
+      .pill.risk {
+        color: var(--risk);
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .empty {
+        min-height: 220px;
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        background: var(--surface-2);
+        border-radius: 8px;
+      }
+
+      .block {
+        background: var(--surface-2);
+        border-radius: 8px;
+        padding: 13px;
+      }
+
+      .block + .block {
+        margin-top: 10px;
+      }
+
+      .kv {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .kv:last-child {
+        border-bottom: 0;
+      }
+
+      .kv strong {
+        color: var(--text);
+      }
+
+      details {
+        margin-top: 16px;
+      }
+
+      summary {
+        cursor: pointer;
+        color: var(--quiet);
+        font-size: 12px;
+      }
+
+      pre {
+        margin: 10px 0 0;
+        max-height: 220px;
+        overflow: auto;
+        padding: 12px;
+        border-radius: 7px;
+        background: #050505;
+        color: #d6d6d6;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font:
+          11px/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      @media (max-width: 980px) {
+        main {
+          padding: 14px;
+        }
+
+        .shell {
+          grid-template-columns: 1fr;
+        }
+
+        .rail .nav {
+          grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        }
+
+        .nav button {
+          grid-template-columns: 1fr;
+          text-align: center;
+        }
+
+        .metrics,
+        .include-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .row {
+          grid-template-columns: 1fr 90px;
+        }
+
+        .deep-table .row {
+          grid-template-columns: 1fr 90px;
+        }
+
+        .row.head,
+        .row .pill,
+        .row .note {
+          display: none;
+        }
+
+        .codex-table .row .note {
+          display: block;
+          grid-column: 1 / -1;
+        }
+
+        .codex-table .row { grid-template-columns: minmax(0, 1fr) auto; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="shell">
+        <aside class="rail">
+          <div class="brand">
+            <h1>Clean My Mac</h1>
+            <p class="muted">Локальная очистка без автосноса state.</p>
+          </div>
+          <nav class="nav">
+            <button class="active" data-action="scan"><span class="icon">⌁</span><span>Scan</span></button>
+            <button data-action="plan"><span class="icon">✓</span><span>Plan</span></button>
+            <button data-action="apps"><span class="icon">▦</span><span>Apps</span></button>
+            <button data-action="cloud"><span class="icon">☁</span><span>Cloud</span></button>
+            <button data-action="deep"><span class="icon">◎</span><span>Deep</span></button>
+            <button data-action="codex"><span class="icon">◇</span><span>Codex</span></button>
+          </nav>
+        </aside>
+
+        <section class="workspace">
+          <div class="topbar">
+            <div>
+              <h2 id="view-title">Scan</h2>
+              <p id="view-subtitle" class="muted">Кандидаты на безопасную очистку.</p>
+            </div>
+            <div class="status"><span class="dot"></span><span id="status">Ready</span></div>
+          </div>
+
+          <div class="metrics">
+            <div class="metric"><span id="metric-reclaim-label">Reclaim</span><strong id="metric-reclaim">-</strong></div>
+            <div class="metric"><span id="metric-count-label">Candidates</span><strong id="metric-count">0</strong></div>
+            <div class="metric"><span id="metric-risk-label">Manual risk</span><strong id="metric-risk">0</strong></div>
+            <div class="metric"><span id="metric-last-label">Last run</span><strong id="metric-last">None</strong></div>
+          </div>
+
+          <div class="body">
+            <div id="cleanup-includes" class="include-grid">
+              <label>Xcode <input type="checkbox" value="xcode" /></label>
+              <label>Simulators <input type="checkbox" value="simulators" /></label>
+              <label>Docker <input type="checkbox" value="docker" /></label>
+              <label>Trash <input type="checkbox" value="trash" /></label>
+              <label>RantBar state <input type="checkbox" value="rantbar-state" /></label>
+            </div>
+
+            <div class="actions">
+              <button id="run-current" class="primary">Run scan</button>
+              <button id="build-plan" class="secondary-action">Build plan</button>
+              <button id="run-apps" class="secondary-action">Audit apps</button>
+              <button id="run-cloud" class="secondary-action">Cloud status</button>
+              <button id="run-clean" class="danger secondary-action">Clean accepted plan</button>
+              <button id="codex-plan" hidden>Review selected plan</button>
+              <button id="codex-clean" class="danger" hidden>Clean accepted plan</button>
+            </div>
+
+            <div class="section-head">
+              <h3 id="table-title">Results</h3>
+              <span class="muted" id="table-meta">No run yet</span>
+            </div>
+            <div id="table" class="empty">Запусти scan или apps audit.</div>
+            <details>
+              <summary>Raw result</summary>
+              <pre id="raw">No result.</pre>
+            </details>
+          </div>
+        </section>
+
+        <aside class="inspector">
+          <div class="block">
+            <h3>Safety</h3>
+            <div class="kv"><span>Default clean</span><strong>Caches</strong></div>
+            <div class="kv"><span>State cleanup</span><strong>Manual</strong></div>
+            <div class="kv"><span>Photos originals</span><strong>Blocked</strong></div>
+            <div class="kv"><span>iCloud Trash</span><strong>Blocked</strong></div>
+          </div>
+          <div class="block">
+            <h3>RantBar</h3>
+            <div class="kv"><span>Caches</span><strong>Default</strong></div>
+            <div class="kv"><span>App state</span><strong>Manual</strong></div>
+            <div class="kv"><span>Evidence</span><strong>Scan</strong></div>
+          </div>
+          <div class="block">
+            <h3>App Support</h3>
+            <div class="kv"><span>Steam/Minecraft</span><strong>App-owned</strong></div>
+            <div class="kv"><span>iCloud backups</span><strong>Review</strong></div>
+            <div class="kv"><span>FileProvider</span><strong>Do not rm</strong></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+
+    <script>
+      const statusText = document.getElementById("status");
+      const viewTitle = document.getElementById("view-title");
+      const viewSubtitle = document.getElementById("view-subtitle");
+      const table = document.getElementById("table");
+      const tableTitle = document.getElementById("table-title");
+      const tableMeta = document.getElementById("table-meta");
+      const raw = document.getElementById("raw");
+      const metricReclaim = document.getElementById("metric-reclaim");
+      const metricCount = document.getElementById("metric-count");
+      const metricRisk = document.getElementById("metric-risk");
+      const metricLast = document.getElementById("metric-last");
+      const metricReclaimLabel = document.getElementById("metric-reclaim-label");
+      const metricCountLabel = document.getElementById("metric-count-label");
+      const metricRiskLabel = document.getElementById("metric-risk-label");
+
+      let currentView = "scan";
+      let lastPlan = null;
+      let busy = false;
+      let codexRoots = [];
+      let codexSelection = new Set();
+      let codexScan = null;
+      let codexResult = null;
+      let codexPlan = null;
+
+      function selectedIncludes() {
+        return [...document.querySelectorAll("#cleanup-includes input:checked")].map((item) => item.value);
+      }
+
+      function setBusy(label) {
+        busy = true;
+        statusText.textContent = label;
+        document.querySelectorAll("button").forEach((button) => {
+          button.disabled = true;
+        });
+        document.querySelectorAll("input").forEach((input) => { input.disabled = true; });
+      }
+
+      function setReady() {
+        busy = false;
+        statusText.textContent = "Ready";
+        document.querySelectorAll("button").forEach((button) => {
+          button.disabled = false;
+        });
+        document.querySelectorAll("#cleanup-includes input").forEach((input) => { input.disabled = false; });
+        document.querySelectorAll("[data-codex-id]").forEach((input) => { input.disabled = input.dataset.eligible !== "true"; });
+        updateCodexActions();
+      }
+
+      function updateCodexActions() {
+        document.getElementById("codex-plan").disabled = busy || !codexSelection.size;
+        document.getElementById("codex-clean").disabled = busy || !codexPlan;
+      }
+
+      function renderCodex(result, action) {
+        const payload = result?.structuredContent?.result ?? {};
+        const receipt = action === "Clean";
+        const rows = receipt ? (payload.results ?? []).map((row) => ({ ...(payload.targets ?? []).find((target) => target.id === row.id), ...row })) : payload.targets ?? [];
+        metricReclaimLabel.textContent = "Allocated";
+        metricCountLabel.textContent = "Logical";
+        metricRiskLabel.textContent = "Selected";
+        metricReclaim.textContent = receipt ? "-" : formatBytes(rows.reduce((sum, row) => sum + Number(row.allocated_bytes ?? 0), 0));
+        metricCount.textContent = receipt ? "-" : formatBytes(rows.reduce((sum, row) => sum + Number(row.logical_bytes ?? row.size_bytes ?? 0), 0));
+        metricRisk.textContent = String(codexSelection.size);
+        metricLast.textContent = action;
+        tableTitle.textContent = receipt ? "Cleanup result" : codexPlan ? "Selected plan" : "Task artifacts";
+        tableMeta.textContent = result?.isError || ["rejected", "failed"].includes(payload.status) ? "Review required" : payload.status === "partial" ? "Partial scan · review coverage" : `${rows.length} items`;
+        raw.textContent = JSON.stringify(result?.structuredContent ?? result, null, 2);
+        if (result?.isError) {
+          table.className = "empty";
+          table.textContent = payload.error || result.structuredContent?.error || result.content?.find((item) => item.type === "text")?.text || "Операция не выполнена. Повтори scan.";
+          return;
+        }
+        if (!rows.length) {
+          table.className = "empty";
+          table.textContent = receipt ? payload.status === "cleaned" ? "Очистка завершена. Запусти scan для нового выбора." : "Файлы не удалены. Повтори scan и проверь доступные артефакты." : "Артефакты задач не найдены.";
+          return;
+        }
+        table.className = "table codex-table";
+        table.innerHTML = `<div class="row head"><span>Artifact</span><span>${receipt ? "Result" : "Allocated"}</span><span>${receipt ? "" : "Logical"}</span><span>Guidance</span></div>` + rows.map((row) => {
+          const eligible = row.eligible === true && typeof row.id === "string" && row.id.length > 0;
+          const selectable = action !== "Clean";
+          return `<div class="row">
+            <div class="codex-title">${selectable ? `<input type="checkbox" data-codex-id="${escapeHtml(row.id || "")}" data-eligible="${eligible}" aria-label="${escapeHtml(`Select ${row.label || row.path}`)}" ${codexSelection.has(row.id) ? "checked" : ""} ${!eligible || busy ? "disabled" : ""}>` : ""}<div class="title"><strong>${escapeHtml(row.label || row.category || "Artifact")}</strong><span class="path">${escapeHtml(row.path || "")}</span></div></div>
+            <div class="size">${receipt ? row.ok ? "Removed" : "Retained" : formatBytes(row.allocated_bytes)}</div>
+            <div class="path">${receipt ? "" : formatBytes(row.logical_bytes ?? row.size_bytes)}</div>
+            <div class="note">${escapeHtml(eligible || action === "Clean" ? row.message || row.note || "" : row.blocked_reason || "Недоступно для очистки.")}</div>
+          </div>`;
+        }).join("");
+      }
+
+      async function callCodex(action) {
+        if (busy || !window.openai?.callTool) {
+          if (!window.openai?.callTool) { table.className = "empty"; table.textContent = "Host bridge is unavailable."; }
+          return;
+        }
+        const accepted = codexPlan;
+        if (action !== "scan" && !codexSelection.size) return;
+        if (action === "clean" && (!accepted || !confirm(`Удалить ${accepted.ids.length} выбранных артефактов из показанного плана? Это удаление файлов.`))) return;
+        const ids = action === "clean" ? [...accepted.ids] : [...codexSelection];
+        const roots = action === "clean" ? [...accepted.roots] : [...codexRoots];
+        codexPlan = null;
+        setBusy(action === "scan" ? "Scanning" : action === "plan" ? "Planning" : "Cleaning");
+        try {
+          const args = { ...(roots.length ? { roots } : {}), ...(action !== "scan" ? { ids } : {}), ...(action === "clean" ? { yes: true } : {}) };
+          const result = await window.openai.callTool(`clean_my_mac_codex_${action}`, args);
+          const payload = result?.structuredContent?.result ?? {};
+          if (!result?.isError && action === "scan") {
+            codexRoots = Array.isArray(payload.roots) ? [...payload.roots] : roots;
+            codexSelection.clear();
+            codexScan = result;
+          }
+          if (!result?.isError && action === "plan") {
+            const planned = payload.targets ?? [];
+            if (planned.length === ids.length && planned.every((row) => row.eligible === true && ids.includes(row.id)) && new Set(planned.map((row) => row.id)).size === ids.length) {
+              codexPlan = { ids: [...ids], roots: Array.isArray(payload.roots) ? [...payload.roots] : roots };
+            }
+          }
+          if (action === "clean") { codexSelection.clear(); codexScan = null; }
+          codexResult = { result, action: action === "scan" ? "Scan" : action === "plan" ? "Plan" : "Clean" };
+          renderCodex(result, codexResult.action);
+        } catch (error) {
+          table.className = "empty";
+          table.textContent = error?.message || String(error);
+          tableMeta.textContent = "Error · repeat scan";
+        } finally { setReady(); }
+      }
+
+      function formatBytes(bytes) {
+        if (!bytes && bytes !== 0) return "-";
+        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+        let value = Number(bytes);
+        let unit = 0;
+        while (value >= 1024 && unit < units.length - 1) {
+          value /= 1024;
+          unit += 1;
+        }
+        return unit === 0 ? `${value} B` : `${value.toFixed(1)} ${units[unit]}`;
+      }
+
+      function riskClass(row) {
+        if (row.default_clean) return "ok";
+        if (["icloud-trash", "photos-originals", "sync-state"].includes(row.category)) return "risk";
+        if (String(row.category || "").includes("state") || String(row.category || "").includes("backup")) return "warn";
+        return "warn";
+      }
+
+      function riskLabel(row) {
+        if (row.default_clean) return "Default";
+        if (riskClass(row) === "risk") return "Blocked";
+        return "Manual";
+      }
+
+      function rowsFrom(result) {
+        const payload = result?.structuredContent?.result ?? result?.structuredContent ?? {};
+        return payload.targets || payload.results || [];
+      }
+
+      function updateMetrics(result, action) {
+        const payload = result?.structuredContent?.result ?? {};
+        const rows = rowsFrom(result);
+        const risk = rows.filter((row) => !row.default_clean && riskClass(row) !== "ok").length;
+        const reclaim = payload.estimated_reclaim ?? payload.total_listed;
+        metricReclaim.textContent = formatBytes(reclaim);
+        metricCount.textContent = String(rows.length);
+        metricRisk.textContent = String(risk);
+        metricLast.textContent = action;
+      }
+
+      function renderRows(rows, mode) {
+        if (!rows.length) {
+          table.className = "empty";
+          table.textContent = "Нет данных.";
+          return;
+        }
+        table.className = "table";
+        const head =
+          '<div class="row head"><span>Name</span><span>Size</span><span>Policy</span><span>Guidance</span></div>';
+        const body = rows
+          .map((row) => {
+            const note = row.note || row.guidance || row.message || "";
+            const category = row.category || mode;
+            const size = row.size_skipped ? "Manual diagnostic" : row.size || row.size_before || formatBytes(row.size_bytes);
+            const ok = row.ok === false ? "risk" : riskClass(row);
+            return `<div class="row">
+              <div class="title"><strong>${escapeHtml(row.label || category)}</strong><span class="path">${escapeHtml(row.path || "")}</span></div>
+              <div class="size">${escapeHtml(size)}</div>
+              <div><span class="pill ${ok}">${escapeHtml(riskLabel(row))}</span></div>
+              <div class="note">${escapeHtml(note)}</div>
+            </div>`;
+          })
+          .join("");
+        table.innerHTML = head + body;
+      }
+
+      function renderDeep(result, action) {
+        const payload = result?.structuredContent?.result ?? {};
+        const summary = payload.summary ?? {};
+        const adapters = Object.entries(payload.adapters ?? {});
+        const disagreements = payload.disagreements ?? [];
+        const topLevel = payload.native?.top_level ?? [];
+
+        metricReclaim.textContent = formatBytes(summary.allocated_bytes);
+        metricCount.textContent = formatBytes(summary.logical_bytes);
+        metricRisk.textContent = String(disagreements.length);
+        metricLast.textContent = action;
+
+        const statusClass = (status) => {
+          if (["available", "complete"].includes(status)) return "ok";
+          if (status === "failed") return "risk";
+          return "warn";
+        };
+        const adapterRows = adapters.map(([name, adapter]) => `<div class="row">
+          <div class="title"><strong>${escapeHtml(name)}</strong><span class="path">Independent verifier</span></div>
+          <div class="size">${formatBytes(adapter.reported_bytes)}</div>
+          <div><span class="pill ${statusClass(adapter.status)}">${escapeHtml(adapter.status || "unknown")}</span></div>
+          <div class="note">${escapeHtml(adapter.reason || adapter.error || adapter.scope_note || "Coverage available")}</div>
+        </div>`);
+        const disagreementRows = disagreements.map((row) => `<div class="row">
+          <div class="title"><strong>${escapeHtml(`${row.tool} disagreement`)}</strong><span class="path">Material accounting difference</span></div>
+          <div class="size">${formatBytes(row.reported_bytes)}</div>
+          <div><span class="pill warn">Review</span></div>
+          <div class="note">${escapeHtml(row.note || `${Math.round(Number(row.difference_ratio || 0) * 100)}% difference`)}</div>
+        </div>`);
+        const topRows = topLevel.map((row) => `<div class="row">
+          <div class="title"><strong>${escapeHtml(row.name)}</strong><span class="path">${escapeHtml(`${row.entries || 0} entries`)}</span></div>
+          <div class="size">${formatBytes(row.allocated_bytes)}</div>
+          <div><span class="pill ok">${formatBytes(row.logical_bytes)}</span></div>
+          <div class="note">Read-only size evidence; not exact reclaimable space.</div>
+        </div>`);
+        const rows = [...adapterRows, ...disagreementRows, ...topRows];
+        if (!rows.length) {
+          table.className = "empty";
+          table.textContent = "Deep scan returned no visible evidence.";
+        } else {
+          table.className = "table deep-table";
+          table.innerHTML = '<div class="row head"><span>Name</span><span>Allocated</span><span>Status / logical</span><span>Evidence</span></div>' + rows.join("");
+        }
+        tableTitle.textContent = "Deep evidence";
+        tableMeta.textContent = result?.isError ? "Review required" : `${payload.elapsed_seconds ?? "-"}s · read-only`;
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+
+      function setView(view) {
+        const previousView = currentView;
+        currentView = view;
+        document.querySelectorAll(".nav button").forEach((button) => {
+          button.classList.toggle("active", button.dataset.action === view);
+        });
+        const map = {
+          scan: ["Scan", "Кандидаты на безопасную очистку.", "Run scan"],
+          plan: ["Plan", "Что будет удалено после подтверждения.", "Build plan"],
+          apps: ["Apps", "Крупные Application Support владельцы.", "Audit apps"],
+          cloud: ["Cloud", "iCloud, File Provider и Google Drive.", "Cloud status"],
+          deep: ["Deep", "Физический и логический размер с независимыми проверками.", "Run deep scan"],
+          codex: ["Codex", "Артефакты задач: выбери файлы, проверь план, подтверди удаление.", "Scan task artifacts"],
+        };
+        viewTitle.textContent = map[view][0];
+        viewSubtitle.textContent = map[view][1];
+        document.getElementById("run-current").textContent = map[view][2];
+        const isDeep = view === "deep";
+        const isCodex = view === "codex";
+        document.getElementById("cleanup-includes").hidden = isDeep || isCodex;
+        document.querySelectorAll(".secondary-action").forEach((button) => {
+          button.hidden = isDeep || isCodex;
+        });
+        document.getElementById("codex-plan").hidden = !isCodex;
+        document.getElementById("codex-clean").hidden = !isCodex;
+        metricReclaimLabel.textContent = isDeep || isCodex ? "Allocated" : "Reclaim";
+        metricCountLabel.textContent = isDeep || isCodex ? "Logical" : "Candidates";
+        metricRiskLabel.textContent = isCodex ? "Selected" : isDeep ? "Disagreements" : "Manual risk";
+        if (isCodex) {
+          if (codexResult) renderCodex(codexResult.result, codexResult.action);
+          else {
+            table.className = "empty"; table.textContent = "Запусти scan для выбора артефактов задач.";
+            metricReclaim.textContent = "-"; metricCount.textContent = "-"; metricRisk.textContent = "0"; metricLast.textContent = "None";
+            tableTitle.textContent = "Task artifacts"; tableMeta.textContent = "No run yet";
+          }
+        } else if (previousView === "codex") {
+          table.className = "empty"; table.textContent = "Запусти выбранную проверку.";
+          metricReclaim.textContent = "-"; metricCount.textContent = "0"; metricRisk.textContent = "0"; metricLast.textContent = "None";
+          tableTitle.textContent = "Results"; tableMeta.textContent = "No run yet";
+        }
+        updateCodexActions();
+        window.openai?.setWidgetState?.({ view, include: selectedIncludes() });
+      }
+
+      async function callTool(name, args, action) {
+        if (!window.openai?.callTool) {
+          table.className = "empty";
+          table.textContent = "Host bridge is unavailable.";
+          return null;
+        }
+        setBusy(action);
+        try {
+          const result = await window.openai.callTool(name, args);
+          raw.textContent = JSON.stringify(result?.structuredContent ?? result, null, 2);
+          if (name === "clean_my_mac_deep_scan") {
+            renderDeep(result, action);
+          } else {
+            updateMetrics(result, action);
+            renderRows(rowsFrom(result), action);
+            tableTitle.textContent = action;
+            tableMeta.textContent = result?.isError ? "Review required" : "Ready";
+          }
+          if (name === "clean_my_mac_plan") lastPlan = result;
+          return result;
+        } catch (error) {
+          table.className = "empty";
+          table.textContent = error?.message || String(error);
+          tableMeta.textContent = "Error";
+          return null;
+        } finally {
+          setReady();
+        }
+      }
+
+      function runCurrent() {
+        if (currentView === "codex") return callCodex("scan");
+        if (currentView === "scan") return callTool("clean_my_mac_scan", {}, "Scan");
+        if (currentView === "plan") return callTool("clean_my_mac_plan", { include: selectedIncludes() }, "Plan");
+        if (currentView === "apps") return callTool("clean_my_mac_app_support_audit", { limit: 24 }, "Apps");
+        if (currentView === "cloud") return callTool("clean_my_mac_cloud_status", {}, "Cloud");
+        return callTool("clean_my_mac_deep_scan", { path: "/System/Volumes/Data", maxEntries: 1000000, timeoutSeconds: 300, top: 30 }, "Deep");
+      }
+
+      document.querySelectorAll(".nav button").forEach((button) => {
+        button.addEventListener("click", () => setView(button.dataset.action));
+      });
+
+      document.getElementById("run-current").addEventListener("click", runCurrent);
+      document.getElementById("codex-plan").addEventListener("click", () => callCodex("plan"));
+      document.getElementById("codex-clean").addEventListener("click", () => callCodex("clean"));
+      table.addEventListener("change", (event) => {
+        const input = event.target.closest("[data-codex-id]");
+        if (!input || input.dataset.eligible !== "true" || busy) return;
+        if (input.checked) codexSelection.add(input.dataset.codexId);
+        else codexSelection.delete(input.dataset.codexId);
+        codexPlan = null;
+        if (codexScan) { codexResult = { result: codexScan, action: "Scan" }; renderCodex(codexScan, "Scan"); }
+        updateCodexActions();
+      });
+      document.getElementById("build-plan").addEventListener("click", () => {
+        setView("plan");
+        callTool("clean_my_mac_plan", { include: selectedIncludes() }, "Plan");
+      });
+      document.getElementById("run-apps").addEventListener("click", () => {
+        setView("apps");
+        callTool("clean_my_mac_app_support_audit", { limit: 24 }, "Apps");
+      });
+      document.getElementById("run-cloud").addEventListener("click", () => {
+        setView("cloud");
+        callTool("clean_my_mac_cloud_status", {}, "Cloud");
+      });
+      document.getElementById("run-clean").addEventListener("click", async () => {
+        if (!lastPlan) {
+          setView("plan");
+          await callTool("clean_my_mac_plan", { include: selectedIncludes() }, "Plan");
+          return;
+        }
+        const ok = confirm("Run cleanup for the accepted plan?");
+        if (!ok) return;
+        callTool("clean_my_mac_clean", { include: selectedIncludes(), yes: true }, "Clean");
+      });
+
+      const state = window.openai?.widgetState;
+      if (state?.include) {
+        document.querySelectorAll("#cleanup-includes input").forEach((input) => {
+          input.checked = state.include.includes(input.value);
+        });
+      }
+      setView(["scan", "plan", "apps", "cloud", "deep", "codex"].includes(state?.view) ? state.view : "scan");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "clean-my-mac-app",
+  "version": "0.1.0+codex.20261015150328",
+  "description": "A local Codex app for macOS disk audits and approved cleanup of caches and regeneratable task artifacts.",
+  "author": {
+    "name": "MD"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Clean My Mac",
+    "shortDescription": "Audit physical disk use and clean approved junk",
+    "longDescription": "Clean My Mac audits physical and logical disk use and cleans approved caches. Its Codex view finds downloaded model weights and reconstructable task artifacts, checks provenance and active use, and preserves source, results, history and credentials.",
+    "developerName": "MD",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Use Clean My Mac to run a deep physical and logical disk scan.",
+      "Use Clean My Mac to scan disk junk and build a cleanup plan.",
+      "Use Clean My Mac to find and clean unused Codex task artifacts.",
+      "Use Clean My Mac to check iCloud and File Provider status."
+    ],
+    "brandColor": "#111111"
+  },
+  "mcpServers": "./.mcp.json"
+}
