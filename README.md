@@ -1,29 +1,45 @@
-# Clean My Mac for Codex
+<h1 align="center">Clean My Mac for Codex</h1>
 
-Find what is filling your Mac's SSD and review exactly what can be removed. Clean My Mac is a local Codex plugin with an interactive disk audit and cleanup panel.
+<p align="center">
+  <strong>Find the files eating your SSD.</strong><br>
+  An interactive disk audit and cleanup panel, right inside Codex.
+</p>
 
-[Install](#install) · [Usage](#usage) · [How cleanup works](#how-cleanup-works) · [Changelog](CHANGELOG.md)
+<p align="center">
+  <a href="#install"><img src="https://img.shields.io/badge/macOS-111111?style=flat-square&logo=apple&logoColor=white" alt="macOS"></a>
+  <a href="plugins/clean-my-mac-app/.codex-plugin/plugin.json"><img src="https://img.shields.io/badge/Codex-plugin-2663EB?style=flat-square" alt="Codex plugin"></a>
+</p>
+
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#what-it-finds">What it finds</a> ·
+  <a href="#you-choose-what-goes">Cleanup controls</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
+
+Dependencies, build folders and model downloads can outlive the task that created them. Clean My Mac helps you find those leftovers, inspect the largest storage owners and review a cleanup plan on your Mac.
 
 ## Install
 
-Requires macOS, Codex with plugin support, Node.js, and Python 3.12 or newer on `PATH`. The backend uses Python's standard library; the MCP server has no npm dependencies.
+**macOS · Codex with plugin support · Node.js · Python 3.12+**
+
+Run these commands in your terminal:
 
 ```bash
 codex plugin marketplace add iddictive/clean-my-mac-plugin
 codex plugin add clean-my-mac-app@clean-my-mac-local
 ```
 
-Start a new Codex chat after installation, then ask:
+Open a **new Codex chat**, then ask:
 
-> Use Clean My Mac to find what is using disk space and show me a cleanup plan.
+> Open Clean My Mac and find what's taking up disk space. Check unused Codex build folders and downloaded models, and show me a cleanup plan before removing anything.
 
-For task leftovers:
+Codex opens the interactive panel. Scans and cleanup run locally.
 
-> Use Clean My Mac to find unused Codex build directories and downloaded model bundles. Show me the exact selection before cleaning.
+<details>
+<summary><strong>Updating an existing installation</strong></summary>
 
-The marketplace identifier is `clean-my-mac-local`. Scanning and cleanup run on your Mac; there is no hosted cleanup service.
-
-To update a Git-installed marketplace and reinstall the current plugin:
+For a marketplace installed from this GitHub repository:
 
 ```bash
 codex plugin marketplace upgrade clean-my-mac-local
@@ -32,30 +48,51 @@ codex plugin add clean-my-mac-app@clean-my-mac-local
 
 Start a new chat to load the updated tools.
 
-## Usage
+</details>
 
-The panel provides disk scans, a cleanup plan, cloud sync status, Application Support triage, and a dedicated **Codex** view.
+## What it finds
 
-- **Deep scan:** compare logical file sizes, allocated blocks, actual volume free space, large files, and incomplete scan coverage. APFS clones and duplicate candidates are reported separately from recoverable space.
-- **Cache cleanup:** review regeneratable package, browser, and developer caches. Docker data, simulator devices, Trash, and app resets require an explicit category choice.
-- **Codex artifacts:** select inactive dependency/build directories and downloaded model bundles whose retained source or download metadata establishes how to recreate them.
-- **Cloud and app storage:** inspect sync status and large Application Support owners before choosing an app's own recovery or storage controls.
+| Looking for… | Open… |
+| --- | --- |
+| The biggest files and folders on your SSD | **Deep scan** — file sizes, allocated storage and actual volume free space. |
+| Caches that can be regenerated | **Cleanup plan** — package, browser and developer caches, grouped for review. |
+| Build folders and downloaded models left behind by Codex | **Codex** — select inactive artifacts with evidence that they can be recreated. |
+| An app or cloud folder that keeps growing | **Application Support / Cloud** — inspect storage owners and sync status before choosing a remedy. |
 
-Optional `gdu` and `dust` adapters add independent scan evidence. Missing tools are reported; the plugin does not install them.
+APFS copies can share storage, so adding up folder sizes can overstate what deletion will free. The audit keeps logical size, allocated bytes and volume free space separate, and reports gaps in scan coverage.
 
-## How cleanup works
+## You choose what goes
 
-The Codex flow is **scan → select → plan → confirm → clean**. A selection ID binds an artifact path to its observed tree. Planning and deletion recheck provenance, active processes, and tree identity. Changed files, incomplete evidence, active use, symlink roots, nested mounts, and cloud placeholders prevent deletion. Empty selection never means “clean everything.”
+For Codex artifacts, the flow is:
 
-Eligible artifacts include ignored Node dependency/build directories, Rust build output and Python environments with retained dependency files, and complete pretrained Hugging Face downloads pinned to a repository revision. A large directory or a `.safetensors` extension alone does not qualify.
+**Scan → Select → Review plan → Confirm → Clean**
 
-Original inputs, editable sources, trained checkpoints, delivered outputs, Git history, Codex history, credentials, and runtime state are preserved. Codex artifact checks inspect selected task workspaces; they do not purge Codex's operating data. These checks concern the dedicated artifact flow; ordinary cache cleanup has its own reviewed category plan.
+The plugin checks the selected files again before deleting. Active use, changed contents or missing evidence block artifact removal. An empty selection never means “clean everything.”
 
-Deletion is permanent. Downloads and builds must be recreated afterward. Allocated-byte totals are estimates; measure volume free space after cleanup to see the actual change.
+**Deletion is permanent.** Removed downloads and builds must be recreated. The plugin runs approved cleanup; it does not install a background sweeper or impose storage quotas.
 
-This plugin performs approved cleanup. It does not install a background sweeper or impose storage quotas on other applications.
+<details>
+<summary><strong>What qualifies for Codex cleanup?</strong></summary>
 
-## Command line
+- Ignored Node dependency/build directories, Rust build output and Python environments with retained dependency files.
+- Complete pretrained Hugging Face downloads pinned to a repository revision, with matching download metadata.
+
+A large folder or a `.safetensors` extension alone does not qualify. Original inputs, editable sources, trained checkpoints, delivered outputs, Git history, Codex history, credentials and runtime state are preserved. Checks inspect selected task workspaces, not Codex's operating data.
+
+Planning and deletion revalidate provenance, active processes and tree identity. Symlink roots, nested mounts, cloud placeholders and incomplete evidence prevent artifact deletion. Ordinary cache cleanup has its own reviewed category plan; Docker data, simulator devices, Trash and app resets require an explicit category choice.
+
+Allocated-byte totals are estimates. Check volume free space after cleanup for the actual change.
+
+</details>
+
+## For developers
+
+The plugin uses a standard-library Python engine and a dependency-free Node.js MCP server. The interactive panel and CLI share the same artifact classifier.
+
+<details>
+<summary><strong>Run the command-line tools</strong></summary>
+
+Requires Node.js and Python 3.12+ on `PATH`.
 
 From a source checkout:
 
@@ -82,7 +119,12 @@ python3 plugins/clean-my-mac-app/skills/clean-my-mac/scripts/clean_my_mac.py cod
 
 `SCANNED_ID`, `PLANNED_ID`, and the task path are placeholders. IDs are selection evidence, not authorization to bypass a rejected path. The default artifact budget is 60 seconds and 500,000 entries; narrow the root when coverage is incomplete. CLI limits can increase to 120 seconds and 1,000,000 entries.
 
-## Development
+Optional `gdu` and `dust` adapters add independent scan evidence. Missing tools are reported; the plugin does not install them.
+
+</details>
+
+<details>
+<summary><strong>Source layout and checks</strong></summary>
 
 The plugin lives in [`plugins/clean-my-mac-app`](plugins/clean-my-mac-app). Its Python engine owns cleanup policy, [`mcp/server.mjs`](plugins/clean-my-mac-app/mcp/server.mjs) exposes the MCP tools, and [`mcp/clean-my-mac-app.html`](plugins/clean-my-mac-app/mcp/clean-my-mac-app.html) owns the panel. MCP and CLI use the same artifact classifier.
 
@@ -91,5 +133,9 @@ python3 -m unittest discover -s plugins/clean-my-mac-app/tests -v
 ```
 
 The suite covers scanner accounting, partial/unavailable adapters, MCP protocol, selection validation, activity protection, and cleanup safety. No model download or large build is needed to run it.
+
+</details>
+
+---
 
 This is an independent Codex plugin and is not affiliated with MacPaw's CleanMyMac.
